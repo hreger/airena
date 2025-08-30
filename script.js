@@ -479,91 +479,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginLink = document.getElementById('login-link');
     const registerLink = document.getElementById('register-link');
     const logoutLink = document.getElementById('logout-link');
-    const loginModal = document.getElementById('login-modal');
-    const registerModal = document.getElementById('register-modal');
-    const loginClose = document.getElementById('login-close');
-    const registerClose = document.getElementById('register-close');
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const loginError = document.getElementById('login-error');
-    const registerError = document.getElementById('register-error');
 
-    // Show login modal
-    loginLink.addEventListener('click', () => {
-        loginModal.style.display = 'block';
-    });
-
-    // Show register modal
-    registerLink.addEventListener('click', () => {
-        registerModal.style.display = 'block';
-    });
-
-    // Close modals
-    loginClose.addEventListener('click', () => {
-        loginModal.style.display = 'none';
-        loginError.textContent = '';
-    });
-    registerClose.addEventListener('click', () => {
-        registerModal.style.display = 'none';
-        registerError.textContent = '';
-    });
-
-    // Logout
+    // Logout functionality
     logoutLink.addEventListener('click', () => {
         localStorage.removeItem('accessToken');
         updateAuthUI();
-    });
-
-    // Login form submit
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        loginError.textContent = '';
-        const username = document.getElementById('login-username').value.trim();
-        const password = document.getElementById('login-password').value.trim();
-        try {
-            const response = await fetch('http://localhost:5000/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                loginError.textContent = errorData.message || 'Login failed';
-                return;
-            }
-            const data = await response.json();
-            localStorage.setItem('accessToken', data.accessToken);
-            loginModal.style.display = 'none';
-            loginForm.reset();
-            updateAuthUI();
-        } catch (error) {
-            loginError.textContent = 'Error during login';
-        }
-    });
-
-    // Register form submit
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        registerError.textContent = '';
-        const username = document.getElementById('register-username').value.trim();
-        const password = document.getElementById('register-password').value.trim();
-        try {
-            const response = await fetch('http://localhost:5000/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                registerError.textContent = errorData.message || 'Registration failed';
-                return;
-            }
-            registerModal.style.display = 'none';
-            registerForm.reset();
-            alert('Registration successful! Please login.');
-        } catch (error) {
-            registerError.textContent = 'Error during registration';
-        }
     });
 
     // Update UI based on auth state

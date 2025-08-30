@@ -11,6 +11,16 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
 
+// Serve static frontend files
+const path = require('path');
+const frontendPath = path.resolve(__dirname, '..');
+app.use(express.static(frontendPath));
+
+// Fallback to serve index.html for unmatched routes (SPA support)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
 // In-memory user store and progress store
 const users = [];
 const userProgressStore = {};
