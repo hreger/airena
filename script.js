@@ -100,8 +100,7 @@ function scrollToSection(sectionId) {
     }
 }
 
-// AI Simulator Functions
-function runAISimulation() {
+async function runAISimulation() {
     const input = document.getElementById('ai-input').value.trim();
     const algorithmType = document.getElementById('algorithm-type').value;
     const outputResult = document.getElementById('output-result');
@@ -112,61 +111,44 @@ function runAISimulation() {
         return;
     }
 
-    outputResult.innerHTML = '<p>Processing with AI algorithm...</p>';
+    outputResult.innerHTML = '<p>Processing with Gemini AI...</p>';
     analysisList.innerHTML = '';
 
-    setTimeout(() => {
-        let result = '';
-        let analysis = [];
+    try {
+        const response = await fetch('http://localhost:5000/api/ai-simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input, algorithmType })
+        });
 
-        switch(algorithmType) {
-            case 'recommendation':
-                result = simulateRecommendationSystem(input);
-                analysis = [
-                    'Algorithm analyzed user input patterns',
-                    'Identified key phrases and sentiment',
-                    'Generated personalized recommendations based on similar content patterns',
-                    'Applied content filtering rules'
-                ];
-                break;
-
-            case 'chatbot':
-                result = simulateChatbotResponse(input);
-                analysis = [
-                    'Processed natural language input',
-                    'Matched patterns to response templates',
-                    'Applied sentiment analysis',
-                    'Generated context-aware response'
-                ];
-                break;
-
-            case 'image-gen':
-                result = simulateImageGeneration(input);
-                analysis = [
-                    'Analyzed text description for visual elements',
-                    'Applied style transfer algorithms',
-                    'Generated image composition',
-                    'Applied quality enhancement filters'
-                ];
-                break;
+        if (!response.ok) {
+            if (response.status === 401) {
+                outputResult.innerHTML = '<p style="color: #dc3545;">Unauthorized access. Please check your API key or credentials.</p>';
+                return;
+            }
+            throw new Error(`Server error: ${response.status}`);
         }
+
+        const data = await response.json();
 
         outputResult.innerHTML = `
             <div style="background: #e8f4f8; padding: 1rem; border-radius: 5px; border-left: 4px solid #79A6D2;">
                 <h4 style="margin-bottom: 0.5rem; color: #333;">AI Output:</h4>
-                <p style="margin: 0;">${result}</p>
+                <p style="margin: 0;">${data.output}</p>
             </div>
         `;
 
         analysisList.innerHTML = '';
-        analysis.forEach(item => {
+        data.analysis.forEach(item => {
             const li = document.createElement('li');
             li.textContent = item;
             li.style.padding = '0.5rem 0';
             li.style.borderBottom = '1px solid #eee';
             analysisList.appendChild(li);
         });
-    }, 1500);
+    } catch (error) {
+        outputResult.innerHTML = `<p style="color: #dc3545;">Error: ${error.message}</p>`;
+    }
 }
 
 function simulateRecommendationSystem(input) {
