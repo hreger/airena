@@ -101,66 +101,72 @@ function scrollToSection(sectionId) {
 }
 
 // AI Simulator Functions
-async function runAISimulation() {
+function runAISimulation() {
     const input = document.getElementById('ai-input').value.trim();
     const algorithmType = document.getElementById('algorithm-type').value;
     const outputResult = document.getElementById('output-result');
     const analysisList = document.getElementById('analysis-list');
-    
+
     if (!input) {
         outputResult.innerHTML = '<p style="color: #dc3545;">Please enter some text or upload an image to analyze.</p>';
         return;
     }
-    
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-        outputResult.innerHTML = '<p style="color: #dc3545;">Please login to use AI simulation features.</p>';
-        return;
-    }
-    
+
     outputResult.innerHTML = '<p>Processing with AI algorithm...</p>';
     analysisList.innerHTML = '';
-    
-    try {
-        const response = await fetch('http://localhost:5000/api/ai-simulate', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ input, algorithmType })
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                localStorage.removeItem('accessToken');
-                updateAuthUI();
-                outputResult.innerHTML = '<p style="color: #dc3545;">Session expired. Please login again.</p>';
-                return;
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
+
+    setTimeout(() => {
+        let result = '';
+        let analysis = [];
+
+        switch(algorithmType) {
+            case 'recommendation':
+                result = simulateRecommendationSystem(input);
+                analysis = [
+                    'Algorithm analyzed user input patterns',
+                    'Identified key phrases and sentiment',
+                    'Generated personalized recommendations based on similar content patterns',
+                    'Applied content filtering rules'
+                ];
+                break;
+
+            case 'chatbot':
+                result = simulateChatbotResponse(input);
+                analysis = [
+                    'Processed natural language input',
+                    'Matched patterns to response templates',
+                    'Applied sentiment analysis',
+                    'Generated context-aware response'
+                ];
+                break;
+
+            case 'image-gen':
+                result = simulateImageGeneration(input);
+                analysis = [
+                    'Analyzed text description for visual elements',
+                    'Applied style transfer algorithms',
+                    'Generated image composition',
+                    'Applied quality enhancement filters'
+                ];
+                break;
         }
-        
-        const data = await response.json();
-        
+
         outputResult.innerHTML = `
             <div style="background: #e8f4f8; padding: 1rem; border-radius: 5px; border-left: 4px solid #79A6D2;">
                 <h4 style="margin-bottom: 0.5rem; color: #333;">AI Output:</h4>
-                <p style="margin: 0;">${data.output}</p>
+                <p style="margin: 0;">${result}</p>
             </div>
         `;
-        
+
         analysisList.innerHTML = '';
-        data.analysis.forEach(item => {
+        analysis.forEach(item => {
             const li = document.createElement('li');
             li.textContent = item;
             li.style.padding = '0.5rem 0';
             li.style.borderBottom = '1px solid #eee';
             analysisList.appendChild(li);
         });
-    } catch (error) {
-        outputResult.innerHTML = `<p style="color: #dc3545;">Error processing AI simulation: ${error.message}</p>`;
-    }
+    }, 1500);
 }
 
 function simulateRecommendationSystem(input) {
@@ -194,56 +200,31 @@ function simulateImageGeneration(input) {
 }
 
 // FactShield Functions
-async function runFactCheck() {
+function runFactCheck() {
     const input = document.getElementById('factcheck-input').value.trim();
     const output = document.getElementById('factcheck-output');
     const reasoning = document.getElementById('reasoning-content');
-    
+
     if (!input) {
         output.innerHTML = '<p style="color: #dc3545;">Please enter content to verify.</p>';
         return;
     }
-    
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-        output.innerHTML = '<p style="color: #dc3545;">Please login to use FactShield features.</p>';
-        return;
-    }
-    
+
     output.innerHTML = '<p>Analyzing content with FactShield...</p>';
     reasoning.innerHTML = '';
-    
-    try {
-        const response = await fetch('http://localhost:5000/api/fact-check', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ content: input })
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                localStorage.removeItem('accessToken');
-                updateAuthUI();
-                output.innerHTML = '<p style="color: #dc3545;">Session expired. Please login again.</p>';
-                return;
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
+
+    setTimeout(() => {
+        const result = analyzeContent(input);
+
         output.innerHTML = `
-            <div style="background: ${result.verified ? '#d4edda' : '#f8d7da'}; 
+            <div style="background: ${result.verified ? '#d4edda' : '#f8d7da'};
                         color: ${result.verified ? '#155724' : '#721c24'};
                         padding: 1rem; border-radius: 5px; border-left: 4px solid ${result.verified ? '#28a745' : '#dc3545'};">
                 <h4 style="margin-bottom: 0.5rem;">${result.verified ? '✅ Verified Content' : '⚠️ Potential Misinformation'}</h4>
                 <p style="margin: 0;">${result.message}</p>
             </div>
         `;
-        
+
         reasoning.innerHTML = `
             <h5>Analysis Breakdown:</h5>
             <ul style="list-style: none; padding: 0;">
@@ -253,9 +234,7 @@ async function runFactCheck() {
                 <strong>Media Literacy Tip:</strong> ${result.tip}
             </div>
         `;
-    } catch (error) {
-        output.innerHTML = `<p style="color: #dc3545;">Error during fact-checking: ${error.message}</p>`;
-    }
+    }, 2000);
 }
 
 function analyzeContent(input) {
@@ -476,31 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Authentication UI elements
-    const loginLink = document.getElementById('login-link');
-    const registerLink = document.getElementById('register-link');
-    const logoutLink = document.getElementById('logout-link');
-
-    // Logout functionality
-    logoutLink.addEventListener('click', () => {
-        localStorage.removeItem('accessToken');
-        updateAuthUI();
-    });
-
-    // Update UI based on auth state
-    function updateAuthUI() {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            loginLink.style.display = 'none';
-            registerLink.style.display = 'none';
-            logoutLink.style.display = 'inline';
-        } else {
-            loginLink.style.display = 'inline';
-            registerLink.style.display = 'inline';
-            logoutLink.style.display = 'none';
-        }
-    }
-
-    updateAuthUI();
+    // Removed login, register, logout UI and logic
 
     // Initialize first module
     selectModule('ai-basics');
